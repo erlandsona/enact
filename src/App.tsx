@@ -8,7 +8,7 @@ import { StopWatch } from "./Stopwatch.tsx";
 const App = enact(function* () {
   let count = useValue(0);
 
-  yield* $(
+  return (
     <>
       <div>
         <a href="https://vite.dev" target="_blank">
@@ -20,19 +20,19 @@ const App = enact(function* () {
       </div>
       <h1>Vite + React</h1>
       <div className="card">
-        <button type="button" onClick={ () => count.set(count.current + 1)}>
-          count is <count.react/> 
+        <button type="button" onClick={() => count.set(count.current + 1)}>
+          count is <count.react />
         </button>
         <p>
           Edit <code>src/App.tsx</code> and save to test HMR
         </p>
 
-	<StopWatch/>
+        <StopWatch />
       </div>
       <p className="read-the-docs">
         Click on the Vite and React logos to learn more
       </p>
-    </>,
+    </>
   );
 });
 
