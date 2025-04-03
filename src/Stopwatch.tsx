@@ -69,17 +69,20 @@ export const StopWatch = enact(function* () {
     }
   });
 
-  return (
-    <>
-      <h1>
-        Time passed: <elapsed.react />
-      </h1>
-      <button type="button" onClick={() => running.set(true)}>
-        Start
-      </button>
-      <button type="button" onClick={() => running.set(false)}>
-        Stop
-      </button>
-    </>
-  );
+
+  for (let isRunning of yield* each(running)) {
+    yield* $(
+      <>
+	<h1>Time passed: <elapsed.react/> </h1>
+	<button type="button" disabled={isRunning} onClick={() => running.set(true)}>
+          Start
+	</button>
+	<button type="button" disabled={!isRunning} onClick={() => running.set(false)}>
+          Stop
+	</button>
+      </>
+    );
+    yield* each.next();
+  }
+
 });

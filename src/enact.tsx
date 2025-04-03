@@ -125,9 +125,10 @@ export function compute<T>(
 ): Computed<T> {
   let { send: emit, close: _close, ...stream } = createChannel<T, never>();
   let computed: Stream<T, never> = resource(function* (provide) {
+    let subscription = yield* stream;
     yield* spawn(() => body(emit));
 
-    yield* provide(yield* stream);
+    yield* provide(subscription);
   });
 
   let react = enact<Record<string, never>>(function* () {
