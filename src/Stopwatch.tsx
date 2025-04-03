@@ -44,20 +44,20 @@ export const StopWatch = enact(function* () {
 
       //capture the start time if it isn't started already.
       if (!startTime) {
-	startTime = Date.now();
+        startTime = Date.now();
       }
 
-      let runWatch = call(function* (): Operation<void> {
+      function* runWatch(): Operation<void> {
         for (let _ of yield* each(interval(10))) {
           let diff = Date.now() - startTime;
           yield* emit(diff.toFixed(3));
           yield* each.next();
         }
-      });
+      }
 
       // emit time diff until running becomes false.
-      yield* race([running.is(false), runWatch]);
-      
+      yield* race([running.is(false), runWatch()]);
+
       // now running is false, so we go back to the top of the loop
     }
   });
