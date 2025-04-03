@@ -2,7 +2,7 @@ import { useState } from "react";
 import reactLogo from "./assets/react.svg";
 import viteLogo from "/vite.svg";
 import "./App.css";
-import { $, enact, useValue } from "./enact.tsx";
+import { enact, useValue } from "./enact.tsx";
 import { StopWatch } from "./Stopwatch.tsx";
 
 const App = enact(function* () {

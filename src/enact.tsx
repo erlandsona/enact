@@ -21,10 +21,12 @@ export interface ReactComponent<T> {
   (props: T): ReactNode;
 }
 
-export function* $(node: ReactNode): Operation<void> {
+export function* render(node: ReactNode): Operation<void> {
   let setContent = yield* RenderContext.expect();
   setContent(node);
 }
+
+export const $ = render;
 
 const RenderContext = createContext<(node: ReactNode) => void>("enact.render");
 
