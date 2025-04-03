@@ -56,8 +56,8 @@ export const StopWatch = enact(function* () {
 
       function* runWatch(): Operation<void> {
         for (let now of yield* each(map(interval(10), () => Date.now()))) {
-          let diff = now - startTime;
-          yield* emit(diff.toFixed(3));
+          let seconds = (now - startTime) / 1000;
+          yield* emit(seconds.toFixed(3));
           yield* each.next();
         }
       }
