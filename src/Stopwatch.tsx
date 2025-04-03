@@ -1,21 +1,25 @@
 import { useState } from "react";
 import { $, compute, enact, useValue } from "./enact.tsx";
 import { interval } from "./interval.ts";
-import { call, each, Operation, race } from "effection";
+import { each, Operation, race } from "effection";
 
 export function StopwatchClassic() {
   const [startTime, setStartTime] = useState(null);
   const [now, setNow] = useState(null);
+  const intervalRef = useRef(null);
 
   function handleStart() {
-    // Start counting.
     setStartTime(Date.now());
     setNow(Date.now());
 
-    setInterval(() => {
-      // Update the current time every 10ms.
+    clearInterval(intervalRef.current);
+    intervalRef.current = setInterval(() => {
       setNow(Date.now());
     }, 10);
+  }
+
+  function handleStop() {
+    clearInterval(intervalRef.current);
   }
 
   let secondsPassed = 0;
@@ -28,6 +32,9 @@ export function StopwatchClassic() {
       <h1>Time passed: {secondsPassed.toFixed(3)}</h1>
       <button onClick={handleStart}>
         Start
+      </button>
+      <button onClick={handleStop}>
+        Stop
       </button>
     </>
   );
