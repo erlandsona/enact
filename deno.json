@@ -5,7 +5,7 @@
   },
   "lint": {
     "rules": {
-      "exclude": ["prefer-const", "no-inner-declarations"]
+      "exclude": ["prefer-const", "no-inner-declarations", "require-yield"]
     }
   }
 }

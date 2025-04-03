@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { $, compute, enact, useValue } from "./enact.tsx";
 import { interval } from "./interval.ts";
 import { each, Operation, race } from "effection";
@@ -69,7 +69,7 @@ export const StopWatch = enact(function* () {
     }
   });
 
-  yield* $(
+  return (
     <>
       <h1>
         Time passed: <elapsed.react />
@@ -80,6 +80,6 @@ export const StopWatch = enact(function* () {
       <button type="button" onClick={() => running.set(false)}>
         Stop
       </button>
-    </>,
+    </>
   );
 });

@@ -14,7 +14,7 @@ import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 
 export interface EnactComponent<T> {
-  (props: T): Operation<void>;
+  (props: T): Operation<ReactNode | void>;
 }
 
 export interface ReactComponent<T> {
@@ -37,7 +37,10 @@ export function enact<T>(component: EnactComponent<T>): ReactComponent<T> {
       scope.set(RenderContext, setContent);
       scope.run(function* () {
         try {
-          yield* component(props);
+          let result = yield* component(props);
+	  if (result) {
+	    setContent(result);
+	  }
         } catch (e) {
           let error = e as Error;
           setContent(
