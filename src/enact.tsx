@@ -40,9 +40,9 @@ export function enact<T>(component: EnactComponent<T>): ReactComponent<T> {
       scope.run(function* () {
         try {
           let result = yield* component(props);
-	  if (result) {
-	    setContent(result);
-	  }
+          if (result) {
+            setContent(result);
+          }
         } catch (e) {
           let error = e as Error;
           setContent(
@@ -129,16 +129,35 @@ export function compute<T>(
 
     yield* provide(yield* stream);
   });
-  
+
   let react = enact<Record<string, never>>(function* () {
     for (let value of yield* each(computed)) {
       yield* $(String(value));
       yield* each.next();
     }
   });
-  
+
   return {
     react,
     [Symbol.iterator]: computed[Symbol.iterator],
   };
+}
+
+export function map<A, B, C>(
+  stream: Stream<A, C>,
+  fn: (value: A) => B,
+): Stream<B, C> {
+  return call(function* () {
+    let source = yield* stream;
+    return {
+      *next() {
+        let next = yield* source.next();
+        if (next.done) {
+          return next;
+        } else {
+          return { done: false, value: fn(next.value) };
+        }
+      },
+    };
+  });
 }

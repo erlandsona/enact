@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { $, compute, enact, useValue } from "./enact.tsx";
+import { $, compute, enact, map, useValue } from "./enact.tsx";
 import { interval } from "./interval.ts";
 import { each, Operation, race } from "effection";
 
@@ -55,8 +55,8 @@ export const StopWatch = enact(function* () {
       }
 
       function* runWatch(): Operation<void> {
-        for (let _ of yield* each(interval(10))) {
-          let diff = Date.now() - startTime;
+        for (let now of yield* each(map(interval(10), () => Date.now()))) {
+          let diff = now - startTime;
           yield* emit(diff.toFixed(3));
           yield* each.next();
         }
