@@ -147,17 +147,15 @@ export function map<A, B, C>(
   stream: Stream<A, C>,
   fn: (value: A) => B,
 ): Stream<B, C> {
-  return call(function* () {
-    let source = yield* stream;
-    return {
-      *next() {
-        let next = yield* source.next();
-        if (next.done) {
-          return next;
-        } else {
-          return { done: false, value: fn(next.value) };
-        }
-      },
-    };
-  });
+  return {
+    *[Symbol.iterator]() {
+      let source = yield* stream;
+      return {
+        *next() {
+          let  next = yield* source.next();
+          return next.done ? next : ({ done: false, value: fn(next.value) });
+        },
+      };
+    },
+  };
 }
