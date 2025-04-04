@@ -4,6 +4,7 @@ import "./App.css";
 import { enact } from "./enact.tsx";
 import { StopWatch } from "./examples/Stopwatch.tsx";
 import { Counter } from "./examples/Counter.tsx";
+import { Search } from "./examples/Search.tsx";
 
 export const App = enact(function* () {
   return (
@@ -24,6 +25,10 @@ export const App = enact(function* () {
       <div className="card">
         <h2>Counter</h2>
         <Counter />
+      </div>
+      <div className="card">
+        <h2>Debounce</h2>
+        <Search />
       </div>
     </>
   );
