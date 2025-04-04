@@ -1,68 +1,32 @@
-import { useState } from "react";
 import reactLogo from "./assets/react.svg";
-import viteLogo from "/vite.svg";
+import effectionLogo from "./assets/effection.svg";
 import "./App.css";
-import { enact, useValue } from "./enact.tsx";
+import { enact } from "./enact.tsx";
 import { StopWatch } from "./Stopwatch.tsx";
+import { Counter } from "./Counter.tsx";
 
 const App = enact(function* () {
-  let count = useValue(0);
-
   return (
     <>
       <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
+        <a href="https://frontside.com/effection" target="_blank">
+          <img src={effectionLogo} className="logo" alt="Effection logo" />
         </a>
         <a href="https://react.dev" target="_blank">
           <img src={reactLogo} className="logo react" alt="React logo" />
         </a>
       </div>
-      <h1>Vite + React</h1>
+      <h1>Effection + React + TypeScript Examples</h1>
       <div className="card">
-        <button type="button" onClick={() => count.set(count.current + 1)}>
-          count is <count.react />
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-
+        <h2>Timer</h2>
         <StopWatch />
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
+      <div className="card">
+        <h2>Counter</h2>
+        <Counter />
+      </div>
     </>
   );
 });
-
-function AppClassic() {
-  const [count, setCount] = useState(0);
-
-  return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button type="button" onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  );
-}
 
 export default App;
