@@ -42,7 +42,7 @@ const SearchResults = enact<{ query: Value<string | undefined> }>(function* (pro
       yield* $(<p>Loading results for {q}...</p>);
       // Attempting to add debouncing for when things go out of scope below but didn't seem to work :thinking:
 
-      yield* sleep(1000);
+      yield* sleep(300);
 
       try {
         let { results } = yield* npmSearch(q);
