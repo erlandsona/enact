@@ -23,6 +23,12 @@ export default tseslint.config(
         'warn',
         { allowConstantExport: true },
       ],
+      'prefer-const': [
+        "off"
+      ],
+      'require-yield': [
+        "off"
+      ]
     },
   },
 )
