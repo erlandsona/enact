@@ -54,9 +54,7 @@ export function enact<T>(component: EnactComponent<T>): ReactComponent<T> {
           );
         }
       });
-      return () => {
-        destroy;
-      };
+      return () => { destroy() };
     }, []);
 
     return content;
@@ -123,7 +121,7 @@ export interface Computed<T> extends Stream<T, never> {
 export function compute<T>(
   body: (emit: (value: T) => Operation<void>) => Operation<void>,
 ): Computed<T> {
-  let { send: emit, close: _close, ...stream } = createChannel<T, never>();
+  let { send: emit, ...stream } = createChannel<T, never>();
   let computed: Stream<T, never> = resource(function* (provide) {
     let subscription = yield* stream;
     yield* spawn(() => body(emit));
