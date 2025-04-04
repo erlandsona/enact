@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { $, compute, enact, map, useValue } from "./enact.tsx";
 import { interval } from "./interval.ts";
-import { each, Operation, race } from "effection";
+import { each, Operation, race, spawn } from "effection";
 
 export function StopwatchClassic() {
   const [startTime, setStartTime] = useState(null);
@@ -42,22 +42,20 @@ export function StopwatchClassic() {
 
 export const StopWatch = enact(function* () {
   let running = useValue(false);
-  let startTime = 0;
+  let elapsed = useValue<string>("0.000");
 
-  let elapsed = compute<string>(function* (emit) {
+  yield* spawn(function*() {
     while (true) {
       // wait until timer is marked running.
       yield* running.is(true);
 
       //capture the start time if it isn't started already.
-      if (!startTime) {
-        startTime = Date.now();
-      }
+      let startTime = Date.now();
 
       function* runWatch(): Operation<void> {
         for (let now of yield* each(map(interval(10), () => Date.now()))) {
           let seconds = (now - startTime) / 1000;
-          yield* emit(seconds.toFixed(3));
+          elapsed.set(seconds.toFixed(3));
           yield* each.next();
         }
       }
@@ -65,9 +63,9 @@ export const StopWatch = enact(function* () {
       // emit time diff until running becomes false.
       yield* race([running.is(false), runWatch()]);
 
-      // now running is false, so we go back to the top of the loop
+      // now running is false, so we go back to the top of the loop    
     }
-  });
+  });;
 
 
   for (let isRunning of yield* each(running)) {
