@@ -49,7 +49,7 @@ export const StopWatch = enact(function* () {
       // wait until timer is marked running.
       yield* running.is(true);
 
-      //capture the start time if it isn't started already.
+      //capture the start time.
       let startTime = Date.now();
 
       function* runWatch(): Operation<void> {
