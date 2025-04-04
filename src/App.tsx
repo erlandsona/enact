@@ -2,10 +2,10 @@ import reactLogo from "./assets/react.svg";
 import effectionLogo from "./assets/effection.svg";
 import "./App.css";
 import { enact } from "./enact.tsx";
-import { StopWatch } from "./Stopwatch.tsx";
-import { Counter } from "./Counter.tsx";
+import { StopWatch } from "./examples/Stopwatch.tsx";
+import { Counter } from "./examples/Counter.tsx";
 
-const App = enact(function* () {
+export const App = enact(function* () {
   return (
     <>
       <div>
@@ -28,5 +28,3 @@ const App = enact(function* () {
     </>
   );
 });
-
-export default App;

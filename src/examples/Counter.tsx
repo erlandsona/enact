@@ -1,4 +1,4 @@
-import { enact, useValue } from "./enact.tsx";
+import { enact, useValue } from "../enact.tsx";
 
 /**
  * ```ts

@@ -1,5 +1,5 @@
-import { $, enact, map, useValue } from "./enact.tsx";
-import { interval } from "./interval.ts";
+import { $, enact, map, useValue } from "../enact.tsx";
+import { interval } from "../operations/interval.ts";
 import { each, Operation, race, spawn } from "effection";
 
 /**
@@ -69,7 +69,7 @@ export const StopWatch = enact(function* () {
     yield* $(
       <>
         <h3>
-          Time passed: <elapsed.react />{" "}
+          Time passed: <elapsed.react />
         </h3>
         <button
           type="button"
