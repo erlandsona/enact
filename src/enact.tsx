@@ -11,53 +11,50 @@ import {
   Stream,
 } from "effection";
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 
 export interface EnactComponent<T> {
-  (props: T): Operation<ReactNode | void>;
+  // NOTE: Disambiguate between undefined ReactNode's and yielding void.
+  (props: T): Operation<{ current: ReactNode } | void>;
 }
 
-export interface ReactComponent<T> {
-  (props: T): ReactNode;
-}
-
-export function* render(node: ReactNode): Operation<void> {
+export function* render(current: ReactNode): Operation<void> {
   let setContent = yield* RenderContext.expect();
-  setContent(node);
+  setContent({ current });
 }
 
 export const $ = render;
 
-const RenderContext = createContext<(node: ReactNode) => void>("enact.render");
+const RenderContext =
+  createContext<(_: { current: ReactNode }) => void>("enact.render");
 
-export function enact<T>(component: EnactComponent<T>): ReactComponent<T> {
+export function enact<T>(component: EnactComponent<T>) {
   return (props: T) => {
-    let [content, setContent] = useState<ReactNode>(null);
-
-    useEffect(() => {
-      let [scope, destroy] = createScope();
+    const [content, setContent] = useState<{ current: ReactNode }>({
+      current: null,
+    });
+    // Create the scope instance for use during the component lifecycle.
+    const [scope, destroy] = useMemo(() => {
+      const [scope, destroy] = createScope();
       scope.set(RenderContext, setContent);
-      scope.run(function* () {
-        try {
-          let result = yield* component(props);
-          if (result) {
-            setContent(result);
-          }
-        } catch (e) {
-          let error = e as Error;
-          setContent(
-            <>
-              <h1>Component Crash</h1>
-              <h3>{error?.message}</h3>
-              <pre>{error?.stack}</pre>
-            </>,
-          );
-        }
-      });
-      return () => { destroy() };
+      return [scope, destroy];
     }, []);
 
-    return content;
+    // Avoid forcing users to wrap all the individual props they care about in Value's.
+    useEffect(() => {
+      scope.run(function* () {
+        const val = yield* component(props);
+        if (val !== undefined) {
+          setContent(val);
+        }
+      });
+      return () => {
+        // console.log("Destroyed");
+        destroy();
+      };
+    }, [props]);
+
+    return content.current;
   };
 }
 
@@ -115,7 +112,7 @@ export function useValue<T>(initial: T): Value<T> {
 }
 
 export interface Computed<T> extends Stream<T, never> {
-  react: ReactComponent<Record<string | symbol, never>>;
+  react: React.FC<Record<string | symbol, never>>;
 }
 
 export function compute<T>(
@@ -151,8 +148,8 @@ export function map<A, B, C>(
       let source = yield* stream;
       return {
         *next() {
-          let  next = yield* source.next();
-          return next.done ? next : ({ done: false, value: fn(next.value) });
+          let next = yield* source.next();
+          return next.done ? next : { done: false, value: fn(next.value) };
         },
       };
     },

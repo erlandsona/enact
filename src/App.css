@@ -37,6 +37,15 @@
   padding: 2em;
 }
 
+/* I'm too used to Tailwind :laughing: */
+.relative {position: relative;}
+.absolute {position: absolute;}
+.opacity-50 {opacity: 0.5;}
+.bg-black {background-color: black;}
+.top-0 {top: 0;}
+.left-0 {left: 0;}
+.size-full {height: 100%; width: 100%}
+
 .read-the-docs {
   color: #888;
 }

@@ -1,62 +1,66 @@
 import {
-  each,
   spawn,
-  sleep,
   useAbortSignal,
   call,
   Task,
+  suspend,
+  type Operation,
 } from "effection";
-import { enact, $, useValue, Value } from "../enact.tsx";
-import { ChangeEventHandler } from "react";
+import { enact, $ } from "../enact.tsx";
+import React, { ChangeEventHandler } from "react";
 
-export const Search = enact<{ query: string | undefined }>(function* (props) {
-  const query = useValue(props.query);
+export function Search(props: { query?: string }) {
+  const [query, setQuery] = React.useState(props.query);
 
   const onChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-    query.set(event.target.value);
+    setQuery(event.target.value);
   };
 
   return (
     <div>
-      <input value={query.current} onChange={onChange} />
-      <SearchResults query={query} />
+      <input value={query} onChange={onChange} />
+      <SearchResults {...{ query }} />
     </div>
   );
-});
+}
 
-const SearchResults = enact<{ query: Value<string | undefined> }>(function* (props) {
-  let lastTask: Task<void> | undefined;
+let task: Task<void> | undefined;
+let results: Results | undefined;
 
-  for (const q of yield* each(props.query)) {
-    if (!q?.length) {
-      yield* $(<p>Enter a keyword to search for packages on NPM.</p>); // Renders an "Initial State"
-      yield* each.next();
-      continue; // skip everything else below.
-    }
-
-    if (lastTask) {
-      yield* lastTask.halt();
-    }
-
-    lastTask = yield* spawn(function* () {
-      yield* $(<p>Loading results for {q}...</p>);
-      // Attempting to add debouncing for when things go out of scope below but didn't seem to work :thinking:
-
-      yield* sleep(300);
-
-      try {
-        let { results } = yield* npmSearch(q);
-        yield* $(<SearchResultsList results={results} />);
-      } catch (error) {
-        yield* $(<ErrorMessage error={error} />);
-      }
-    });
-
-    yield* each.next();
+const SearchResults = enact<{ query: string | undefined }>(function* ({
+  query,
+}) {
+  if (task) {
+    yield* task.halt();
   }
+  if (!query?.length) {
+    yield* $(<p>Enter a keyword to search for packages on NPM.</p>); // Renders an "Initial State"
+    results = undefined;
+    return; // skip everything else below.
+  }
+  if (results) {
+    yield* $(
+      <div className="relative">
+        <SearchResultsList {...results} />
+        <div className="absolute opacity-50 bg-black top-0 left-0 size-full" />
+      </div>,
+    );
+  } else {
+    yield* $(<p>Loading results for {query}...</p>);
+  }
+  task = yield* spawn(function* () {
+    try {
+      const stuff = yield* npmSearch(query);
+      results = stuff;
+      yield* $(<SearchResultsList {...stuff} />);
+    } catch (error) {
+      yield* $(<ErrorMessage error={error as Error} />);
+    }
+  });
+  yield* suspend();
 });
 
-function SearchResultsList({ results }: { results: unknown[] }) {
+function SearchResultsList({ results }: Results) {
   return results.length === 0 ? (
     <p>No results</p>
   ) : (
@@ -78,7 +82,18 @@ function SearchResultsList({ results }: { results: unknown[] }) {
   );
 }
 
-function* npmSearch(query: string) {
+type Results = {
+  results: Array<{
+    package: {
+      name: string;
+      version: string;
+      description: string;
+      links: { npm: string };
+    };
+  }>;
+};
+
+function* npmSearch(query: string): Operation<Results> {
   const signal = yield* useAbortSignal();
   /* npms.io search API is used in this example. Good stuff.*/
   const url = `https://api.npms.io/v2/search?from=0&size=25&q=${query}`;
