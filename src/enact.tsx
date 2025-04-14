@@ -6,12 +6,13 @@ import {
   createSignal,
   each,
   type Operation,
+  type Future,
   resource,
   spawn,
   Stream,
 } from "effection";
 import type { ReactNode } from "react";
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState, useRef } from "react";
 
 export interface EnactComponent<T> {
   // NOTE: Disambiguate between undefined ReactNode's and yielding void.
@@ -33,24 +34,28 @@ export function enact<T>(component: EnactComponent<T>) {
     const [content, setContent] = useState<{ current: ReactNode }>({
       current: null,
     });
-    // Create the scope instance for use during the component lifecycle.
-    const [scope, destroy] = useMemo(() => {
+    // Store ref to Future of previous render to block subsequent renders until
+    // cleanup function has run to completion.
+    const destroying = useRef<Future<void>>(void 0);
+
+    useEffect(() => {
       const [scope, destroy] = createScope();
       scope.set(RenderContext, setContent);
-      return [scope, destroy];
-    }, []);
-
-    // Avoid forcing users to wrap all the individual props they care about in Value's.
-    useEffect(() => {
       scope.run(function* () {
+        // Block subsequent renders until cleanup function has run to completion.
+        if (destroying.current) {
+          yield* destroying.current;
+        }
         const val = yield* component(props);
         if (val !== undefined) {
           setContent(val);
         }
       });
       return () => {
-        // console.log("Destroyed");
-        destroy();
+        destroying.current = destroy();
+        destroying.current.catch((e) => {
+          console.error("Cleanup failed:", e);
+        });
       };
     }, [props]);
 

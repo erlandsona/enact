@@ -1,11 +1,4 @@
-import {
-  spawn,
-  useAbortSignal,
-  call,
-  Task,
-  suspend,
-  type Operation,
-} from "effection";
+import { useAbortSignal, until, type Operation } from "effection";
 import { enact, $ } from "../enact.tsx";
 import React, { ChangeEventHandler } from "react";
 
@@ -24,15 +17,9 @@ export function Search(props: { query?: string }) {
   );
 }
 
-let task: Task<void> | undefined;
 let results: Results | undefined;
 
-const SearchResults = enact<{ query: string | undefined }>(function* ({
-  query,
-}) {
-  if (task) {
-    yield* task.halt();
-  }
+const SearchResults = enact<{ query?: string }>(function* ({ query }) {
   if (!query?.length) {
     yield* $(<p>Enter a keyword to search for packages on NPM.</p>); // Renders an "Initial State"
     results = undefined;
@@ -48,16 +35,13 @@ const SearchResults = enact<{ query: string | undefined }>(function* ({
   } else {
     yield* $(<p>Loading results for {query}...</p>);
   }
-  task = yield* spawn(function* () {
-    try {
-      const stuff = yield* npmSearch(query);
-      results = stuff;
-      yield* $(<SearchResultsList {...stuff} />);
-    } catch (error) {
-      yield* $(<ErrorMessage error={error as Error} />);
-    }
-  });
-  yield* suspend();
+  try {
+    const stuff = yield* npmSearch(query);
+    results = stuff;
+    yield* $(<SearchResultsList {...stuff} />);
+  } catch (error) {
+    yield* $(<ErrorMessage error={error as Error} />);
+  }
 });
 
 function SearchResultsList({ results }: Results) {
@@ -97,15 +81,15 @@ function* npmSearch(query: string): Operation<Results> {
   const signal = yield* useAbortSignal();
   /* npms.io search API is used in this example. Good stuff.*/
   const url = `https://api.npms.io/v2/search?from=0&size=25&q=${query}`;
-  let response = yield* call(() => fetch(url, { signal }));
+  let response = yield* until(fetch(url, { signal }));
 
   if (response.ok) {
-    return yield* call(() => response.json());
+    return yield* until(response.json());
   }
 
   /* If API returns some weird stuff and not 2xx, convert it to error and show
      on the screen. */
-  throw new Error(yield* call(() => response.text()));
+  throw new Error(yield* until(response.text()));
 }
 
 function ErrorMessage({ error }: { error: Error }) {
