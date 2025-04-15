@@ -1,5 +1,5 @@
 import { useAbortSignal, until, type Operation } from "effection";
-import { enact, $ } from "../enact.tsx";
+import { enact, r } from "../enact.tsx";
 import React, { ChangeEventHandler } from "react";
 
 export function Search(props: { query?: string }) {
@@ -21,26 +21,25 @@ let results: Results | undefined;
 
 const SearchResults = enact<{ query?: string }>(function* ({ query }) {
   if (!query?.length) {
-    yield* $(<p>Enter a keyword to search for packages on NPM.</p>); // Renders an "Initial State"
     results = undefined;
-    return; // skip everything else below.
+    return <p>Enter a keyword to search for packages on NPM.</p>; // Renders an "Initial State"
   }
   if (results) {
-    yield* $(
+    yield* r(
       <div className="relative">
         <SearchResultsList {...results} />
         <div className="absolute opacity-50 bg-black top-0 left-0 size-full" />
       </div>,
     );
   } else {
-    yield* $(<p>Loading results for {query}...</p>);
+    yield* r(<p>Loading results for {query}...</p>);
   }
   try {
     const stuff = yield* npmSearch(query);
     results = stuff;
-    yield* $(<SearchResultsList {...stuff} />);
+    return <SearchResultsList {...stuff} />;
   } catch (error) {
-    yield* $(<ErrorMessage error={error as Error} />);
+    return <ErrorMessage error={error as Error} />;
   }
 });
 

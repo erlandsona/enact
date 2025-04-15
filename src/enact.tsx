@@ -12,28 +12,26 @@ import {
   Stream,
 } from "effection";
 import type { ReactNode } from "react";
-import { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 export interface EnactComponent<T> {
   // NOTE: Disambiguate between undefined ReactNode's and yielding void.
-  (props: T): Operation<{ current: ReactNode } | void>;
+  (props: T): Operation<ReactNode | void>;
 }
 
-export function* render(current: ReactNode): Operation<void> {
+export function* render(current?: ReactNode): Operation<void> {
   let setContent = yield* RenderContext.expect();
-  setContent({ current });
+  setContent(current);
 }
 
-export const $ = render;
+export const r = render;
 
 const RenderContext =
-  createContext<(_: { current: ReactNode }) => void>("enact.render");
+  createContext<(_: ReactNode) => void>("enact.render");
 
 export function enact<T>(component: EnactComponent<T>) {
   return (props: T) => {
-    const [content, setContent] = useState<{ current: ReactNode }>({
-      current: null,
-    });
+    const [content, setContent] = useState<ReactNode>();
     // Store ref to Future of previous render to block subsequent renders until
     // cleanup function has run to completion.
     const destroying = useRef<Future<void>>(void 0);
@@ -48,7 +46,7 @@ export function enact<T>(component: EnactComponent<T>) {
             yield* destroying.current;
           }
           const val = yield* component(props);
-          if (val !== undefined) {
+          if (React.isValidElement(val)) {
             setContent(val);
           }
         })
@@ -63,7 +61,7 @@ export function enact<T>(component: EnactComponent<T>) {
       };
     }, [props]);
 
-    return content.current;
+    return content;
   };
 }
 
@@ -137,7 +135,7 @@ export function compute<T>(
 
   let react = enact<Record<string, never>>(function* () {
     for (let value of yield* each(computed)) {
-      yield* $(String(value));
+      yield* r(String(value));
       yield* each.next();
     }
   });
