@@ -41,16 +41,20 @@ export function enact<T>(component: EnactComponent<T>) {
     useEffect(() => {
       const [scope, destroy] = createScope();
       scope.set(RenderContext, setContent);
-      scope.run(function* () {
-        // Block subsequent renders until cleanup function has run to completion.
-        if (destroying.current) {
-          yield* destroying.current;
-        }
-        const val = yield* component(props);
-        if (val !== undefined) {
-          setContent(val);
-        }
-      });
+      scope
+        .run(function* () {
+          // Block subsequent renders until cleanup function has run to completion.
+          if (destroying.current) {
+            yield* destroying.current;
+          }
+          const val = yield* component(props);
+          if (val !== undefined) {
+            setContent(val);
+          }
+        })
+        .catch((e) => {
+          throw new Error(e);
+        });
       return () => {
         destroying.current = destroy();
         destroying.current.catch((e) => {
