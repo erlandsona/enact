@@ -6,16 +6,46 @@ import { ErrorBoundary } from "react-error-boundary";
 export function Search(props: { query?: string }) {
   const [query, setQuery] = React.useState(props.query);
 
+  const [throwOn, setThrowOn] = React.useState<"sync" | "async" | undefined>();
+
+  const isThrower = (s: string): s is "sync" | "async" =>
+        ["sync", "async"].includes(s)
   return (
     <div>
+      <label>
+        Error Behavior{' '}
+        <select
+          defaultValue={undefined}
+          onChange={(e) => {
+            const value = e.target.value
+            if (isThrower(value)) {
+              setThrowOn(value);
+            } else {
+              setThrowOn(void 0);
+            }
+          }}
+        >
+          <option>Happy Path</option>
+          <option value="sync">Throw a Synchronous Error</option>
+          <option value="async">Throw an Asynchronous Error</option>
+        </select>
+      </label>
+      <br />
+      <label>
+      Query: {' '}
       <input
         value={query}
         onChange={(event) => {
           setQuery(event.target.value);
         }}
       />
-      <ErrorBoundary resetKeys={[query]} fallbackRender={({error}) => `Oh no! ${error}`}>
-        <SearchResults {...{ query }} />
+      </label>
+      <br />
+      <ErrorBoundary
+        resetKeys={[query]}
+        fallbackRender={({ error }) => `Oh no! ${error}`}
+      >
+        <SearchResults {...{ throwOn, query }} />
       </ErrorBoundary>
     </div>
   );
@@ -23,7 +53,10 @@ export function Search(props: { query?: string }) {
 
 let results: Results | undefined;
 
-const SearchResults = enact<{ query?: string }>(function* ({ query }) {
+const SearchResults = enact<{
+  throwOn?: "async" | "sync";
+  query?: string;
+}>(function* ({ query, throwOn }) {
   if (!query?.length) {
     results = undefined;
     return <p>Enter a keyword to search for packages on NPM.</p>; // Renders an "Initial State"
@@ -38,10 +71,18 @@ const SearchResults = enact<{ query?: string }>(function* ({ query }) {
   } else {
     yield* r(<p>Loading results for {query}...</p>);
   }
-  yield* action((res, rej) => {
-    let to = setTimeout(() => rej("Ah Dang!"), 1000);
-    return () => clearTimeout(to);
-  });
+  switch (throwOn) {
+    case "async": {
+      yield* action((_res, rej) => {
+        let to = setTimeout(() => rej(new Error("Ah Dang!")), 1000);
+        return () => clearTimeout(to);
+      });
+      break;
+    }
+    case "sync": {
+      throw new Error("Oh Bummer!");
+    }
+  }
   try {
     const stuff = yield* npmSearch(query);
     results = stuff;

@@ -56,9 +56,11 @@ export function enact<T>(component: EnactComponent<T>) {
         })
       return () => {
         destroying.current = destroy();
-        destroying.current.catch((e) => {
-          console.error("Cleanup failed:", e);
-        });
+        destroying.current
+          // .then(() => { throw new Error('Caught on cleanup') })
+          .catch((error) => {
+            console.error(`uncaught error during teardown`, error)
+          });
       };
     }, [props]);
 
