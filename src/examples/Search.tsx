@@ -1,18 +1,22 @@
-import { useAbortSignal, until, type Operation } from "effection";
+import { useAbortSignal, action, until, type Operation } from "effection";
 import { enact, r } from "../enact.tsx";
 import React, { ChangeEventHandler } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 
 export function Search(props: { query?: string }) {
   const [query, setQuery] = React.useState(props.query);
 
-  const onChange: ChangeEventHandler<HTMLInputElement> = (event) => {
-    setQuery(event.target.value);
-  };
-
   return (
     <div>
-      <input value={query} onChange={onChange} />
-      <SearchResults {...{ query }} />
+      <input
+        value={query}
+        onChange={(event) => {
+          setQuery(event.target.value);
+        }}
+      />
+      <ErrorBoundary resetKeys={[query]} fallbackRender={({error}) => `Oh no! ${error}`}>
+        <SearchResults {...{ query }} />
+      </ErrorBoundary>
     </div>
   );
 }
@@ -34,6 +38,10 @@ const SearchResults = enact<{ query?: string }>(function* ({ query }) {
   } else {
     yield* r(<p>Loading results for {query}...</p>);
   }
+  yield* action((res, rej) => {
+    let to = setTimeout(() => rej("Ah Dang!"), 1000);
+    return () => clearTimeout(to);
+  });
   try {
     const stuff = yield* npmSearch(query);
     results = stuff;

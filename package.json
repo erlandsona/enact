@@ -12,7 +12,8 @@
   "dependencies": {
     "effection": "^3.4.0",
     "react": "^19.1.0",
-    "react-dom": "^19.1.0"
+    "react-dom": "^19.1.0",
+    "react-error-boundary": "^5.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.21.0",

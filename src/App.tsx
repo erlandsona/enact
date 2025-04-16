@@ -5,10 +5,9 @@ import { enact } from "./enact.tsx";
 import { StopWatch } from "./examples/Stopwatch.tsx";
 import { Counter } from "./examples/Counter.tsx";
 import { Search } from "./examples/Search.tsx";
-import { $ } from './enact.tsx'
 
 export const App = enact(function* () {
-  yield* $(
+  return (
     <>
       <div>
         <a href="https://frontside.com/effection" target="_blank">

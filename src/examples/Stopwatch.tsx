@@ -1,4 +1,4 @@
-import { $, enact, map, useValue } from "../enact.tsx";
+import { r, enact, map, useValue } from "../enact.tsx";
 import { interval } from "../operations/interval.ts";
 import { each, Operation, race, spawn } from "effection";
 
@@ -66,7 +66,7 @@ export const StopWatch = enact(function* () {
   });
 
   for (let isRunning of yield* each(running)) {
-    yield* $(
+    yield* r(
       <>
         <h3>
           Time passed: <elapsed.react />

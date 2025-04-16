@@ -1,4 +1,4 @@
-import { enact, $, useValue } from "../enact.tsx";
+import { enact, r, useValue } from "../enact.tsx";
 
 /**
  * ```ts
@@ -16,10 +16,10 @@ import { enact, $, useValue } from "../enact.tsx";
 export const Counter = enact(function* () {
   let count = useValue(0);
 
-  yield* $(
+  return (
     <button type="button" onClick={() => count.set(count.current + 1)}>
       count is <count.react />
-    </button>,
+    </button>
   );
 });
 

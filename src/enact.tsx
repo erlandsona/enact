@@ -26,8 +26,7 @@ export function* render(current?: ReactNode): Operation<void> {
 
 export const r = render;
 
-const RenderContext =
-  createContext<(_: ReactNode) => void>("enact.render");
+const RenderContext = createContext<(_: ReactNode) => void>("enact.render");
 
 export function enact<T>(component: EnactComponent<T>) {
   return (props: T) => {
@@ -35,24 +34,26 @@ export function enact<T>(component: EnactComponent<T>) {
     // Store ref to Future of previous render to block subsequent renders until
     // cleanup function has run to completion.
     const destroying = useRef<Future<void>>(void 0);
+    let [err, setErr] = useState<{error: unknown} | void>();
 
     useEffect(() => {
       const [scope, destroy] = createScope();
       scope.set(RenderContext, setContent);
       scope
         .run(function* () {
-          // Block subsequent renders until cleanup function has run to completion.
-          if (destroying.current) {
-            yield* destroying.current;
-          }
-          const val = yield* component(props);
-          if (React.isValidElement(val)) {
-            setContent(val);
+          try {
+            // Block subsequent renders until cleanup function has run to completion.
+            if (destroying.current) {
+              yield* destroying.current;
+            }
+            const val = yield* component(props);
+            if (React.isValidElement(val)) {
+              setContent(val);
+            }
+          } catch (error) {
+            setErr({ error });
           }
         })
-        .catch((e) => {
-          throw new Error(e);
-        });
       return () => {
         destroying.current = destroy();
         destroying.current.catch((e) => {
@@ -60,6 +61,13 @@ export function enact<T>(component: EnactComponent<T>) {
         });
       };
     }, [props]);
+
+    // this is the key weird looking part
+    useEffect(() => {
+      if (err?.error) {
+        throw err.error;
+      }
+    }, [err]);
 
     return content;
   };
